@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "trumbeak"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.95.2"
+uvicorn = {extras = ["standard"], version = "^0.22.0"}
+websockets = "^11.0.3"
+starlette = "^0.27.0"
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.15"}
+aiosqlite = "^0.19.0"
+pydantic = "^1.10.8"
+argon2-cffi = "^21.3.0"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+flake8 = "^6.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+skip-magic-trailing-comma = true
