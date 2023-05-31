@@ -8,7 +8,7 @@ import * as utils from "./utils";
 
 export function logoImage() {
   const image = document.createElement("img");
-  image.src = "/assets/Menu_HOME_0206.png";
+  image.src = "/assets/ezgif-2-d25683dee3.webp";
   return image;
 }
 
@@ -31,7 +31,7 @@ export function logo(dimension: 16 | 24 | 32 | 48 | 64 | 96 | 128) {
 }
 
 export function name() {
-  return document.createTextNode("Dunsparce");
+  return document.createTextNode("Omanyte");
 }
 
 export function section(children: Node[]) {
