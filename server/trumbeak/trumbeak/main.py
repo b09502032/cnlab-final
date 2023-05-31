@@ -1,4 +1,5 @@
 import asyncio
+import pathlib
 
 import argon2
 import fastapi
@@ -35,6 +36,7 @@ async def main():
                 session_maker=session_maker, spaces={}
             ),
         ),
+        directory=pathlib.Path("../../client/dunsparce/dist"),
     )
 
     config = uvicorn.Config(app)

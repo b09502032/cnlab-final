@@ -35,3 +35,7 @@ class Manager:
                 await trumbeak.password.crud.update_password(session, user_id, hash)
                 await session.commit()
             return user_id
+
+    async def get_user(self, id: int):
+        async with self.session_maker() as session:
+            return await trumbeak.users.crud.get_user(session, id)

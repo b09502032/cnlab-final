@@ -1,4 +1,5 @@
 import asyncio
+import collections
 import copy
 import dataclasses
 from typing import Literal
@@ -35,13 +36,18 @@ class ReversiSpace:
     ):
         state_update = self.get_state_update()
         player_update = self.get_player_update()
-        next_player_options = self.reversi.next_player_options
-        if next_player_options is not None:
+        if self.reversi.ended:
             move_options = trumbeak.reversi.message.MoveOptions(
-                len(self.reversi.state.moves), copy.deepcopy(next_player_options)
+                len(self.reversi.state.moves), None
             )
         else:
-            move_options = None
+            next_player_options = self.reversi.next_player_options
+            if next_player_options is not None:
+                move_options = trumbeak.reversi.message.MoveOptions(
+                    len(self.reversi.state.moves), copy.deepcopy(next_player_options)
+                )
+            else:
+                move_options = None
         await subscriber.send(state_update)
         await subscriber.send(player_update)
         if move_options is not None:
@@ -62,12 +68,15 @@ class ReversiSpace:
         await self.broker.send(move_options)
         return options
 
-    async def end_turn(
+    async def end_turn_by_user(
         self, user_id: int, move_selection: trumbeak.reversi.message.MoveSelection
     ):
         assert self.players[self.reversi.state.next_player] == user_id
         assert move_selection.id == len(self.reversi.state.moves)
-        self.reversi.end_turn(move_selection.index)
+        await self.end_turn(move_selection.index)
+
+    async def end_turn(self, option_index: int | None):
+        self.reversi.end_turn(option_index)
         await self.update_state()
 
     async def handle_receive(
@@ -75,7 +84,18 @@ class ReversiSpace:
     ):
         while True:
             message = await receiver.receive()
-            await self.end_turn(user_id, message)
+            if isinstance(message, trumbeak.reversi.message.ChoosePlayer):
+                assert user_id not in self.players
+                await self.update_player(message.index, user_id)
+            elif isinstance(message, trumbeak.reversi.message.MoveSelection):
+                await self.end_turn_by_user(user_id, message)
+                while True:
+                    options = await self.begin_turn()
+                    if options is None:
+                        break
+                    if options:
+                        break
+                    await self.end_turn(None)
 
     async def update_player(self, index: Literal[0, 1], user_id: int):
         assert self.players[index] is None
@@ -84,9 +104,11 @@ class ReversiSpace:
         players = (players[0], players[1])
         self.players = players
         async with self.session_maker() as session:
-            await trumbeak.reversi.crud.update_player(session, self.id, players)
+            await trumbeak.reversi.crud.update_player(session, self.id, self.players)
             await session.commit()
         await self.broker.send(self.get_player_update())
+        if all(player is not None for player in self.players):
+            await self.begin_turn()
 
     async def update_state(self):
         async with self.session_maker() as session:
@@ -113,13 +135,16 @@ class Manager:
             owner=owner,
             players=reversi.players,
             reversi=trumbeak.reversi.core.Reversi(
-                state=reversi.state, next_player_options=None
+                state=reversi.state, next_player_options=None, ended=False
             ),
             session_maker=self.session_maker,
             broker=trumbeak.broker.Broker([]),
         )
         self.spaces[space.id] = space
         return space.id
+
+    def list_reversi(self):
+        return list(self.spaces.keys())
 
     async def get_reversi(self, id: int):
         async with self.session_maker() as session:

@@ -8,7 +8,7 @@ import trumbeak.reversi.models
 
 async def create_reversi(session: sqlalchemy.ext.asyncio.AsyncSession, owner: int):
     reversi = trumbeak.reversi.models.Reversi(
-        owner=owner, players=(None, None), state=trumbeak.reversi.core.default_state()
+        owner=owner, players=(None, None), state=trumbeak.reversi.core.default_state(length=4)
     )
     session.add(reversi)
     await session.flush()

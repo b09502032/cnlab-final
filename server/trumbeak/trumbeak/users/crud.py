@@ -23,3 +23,12 @@ async def get_user_by_name(session: sqlalchemy.ext.asyncio.AsyncSession, name: s
     result = await session.scalar(statement)
     assert result is not None
     return result
+
+
+async def get_user(session: sqlalchemy.ext.asyncio.AsyncSession, id: int):
+    statement = sqlalchemy.select(trumbeak.users.models.User).where(
+        trumbeak.users.models.User.id == id
+    )
+    result = await session.scalar(statement)
+    assert result is not None
+    return result

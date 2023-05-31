@@ -1,4 +1,5 @@
 import dataclasses
+from typing import Literal
 
 import pydantic
 
@@ -32,6 +33,11 @@ class MoveSelection:
 
 
 @dataclasses.dataclass
+class ChoosePlayer:
+    index: Literal[0, 1]
+
+
+@dataclasses.dataclass
 class Subscriber(trumbeak.broker.Subscriber[Message]):
     subscriber: trumbeak.broker.WebSocketSubscriber
 
@@ -51,7 +57,7 @@ class Receiver:
         assert message.keys() == {"type", "data"}
         message_type = message["type"]
         assert isinstance(message_type, str)
-        for type in (MoveSelection,):
+        for type in (MoveSelection, ChoosePlayer):
             if message_type == type.__name__:
                 return pydantic.parse_obj_as(type, message["data"])
         assert False

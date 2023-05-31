@@ -49,8 +49,8 @@ class State:
     moves: list[Move]
 
 
-def default_state():
-    return State(board=default_board(), next_player=1, moves=[])
+def default_state(length: int = 8):
+    return State(board=default_board(length=length), next_player=1, moves=[])
 
 
 def get_row_flips(
@@ -101,6 +101,7 @@ class MoveOption:
 class Reversi:
     state: State
     next_player_options: list[MoveOption] | None
+    ended: bool
 
     def options(self):
         player = self.state.next_player
@@ -123,10 +124,17 @@ class Reversi:
         move = Move(player=player, position=option.position)
         self.state.moves.append(move)
 
-    def begin_turn(self):
+    def maybe_options(self):
         options = list(self.options())
         last_player_options = self.next_player_options
         if last_player_options is not None and not last_player_options and not options:
+            return None
+        return options
+
+    def begin_turn(self):
+        options = self.maybe_options()
+        if options is None:
+            self.ended = True
             return None
         self.next_player_options = options
         return options
@@ -142,7 +150,7 @@ class Reversi:
 
 
 def default_reversi():
-    return Reversi(state=default_state(), next_player_options=None)
+    return Reversi(state=default_state(), next_player_options=None, ended=False)
 
 
 def main():
