@@ -83,9 +83,7 @@ export function navbar(client: clients.Client, route: Route) {
                 alignItems: flexbox.AlignItems.CENTER,
               }),
               [
-                utils.replaceChildren(document.createElement("div"), [
-                  logoImage(),
-                ]),
+                logoImage(),
                 utils.replaceChildren(document.createElement("div"), [name()]),
               ]
             ),

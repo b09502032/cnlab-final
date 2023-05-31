@@ -4,7 +4,6 @@ import * as boxes from "./bulma/elements/box";
 import * as buttons from "./bulma/elements/button";
 import * as forms from "./bulma/form/general";
 import * as inputs from "./bulma/form/input";
-import * as flexbox from "./bulma/helpers/flexbox";
 import * as typography from "./bulma/helpers/typography";
 import * as tiles from "./bulma/layout/tiles";
 import * as clients from "./client";
@@ -84,6 +83,13 @@ function form(client: clients.Client, route: common.Route) {
 }
 
 function welcome(client: clients.Client, route: common.Route) {
+  const leftTile = document.createElement("div");
+  leftTile.style.textAlign = "center";
+  const image = common.logoImage();
+  image.style.width = "128px";
+  image.style.verticalAlign = "middle";
+  const nameSpan = document.createElement("span");
+  nameSpan.style.verticalAlign = "middle";
   return utils.replaceChildren(
     tiles.tile({
       element: document.createElement("div"),
@@ -98,28 +104,13 @@ function welcome(client: clients.Client, route: common.Route) {
         [
           utils.replaceChildren(
             tiles.tile({
-              element: document.createElement("div"),
+              element: leftTile,
               context: tiles.Context.CHILD,
             }),
             [
               utils.replaceChildren(
-                flexbox.flex({
-                  element: document.createElement("span"),
-                  alignItems: flexbox.AlignItems.CENTER,
-                }),
-                [
-                  utils.replaceChildren(
-                    blocks.block(document.createElement("div")),
-                    [common.logo(128)]
-                  ),
-                  utils.replaceChildren(
-                    typography.size(
-                      blocks.block(document.createElement("div")),
-                      1
-                    ),
-                    [common.name()]
-                  ),
-                ]
+                typography.size(blocks.block(document.createElement("div")), 1),
+                [image, utils.replaceChildren(nameSpan, [common.name()])]
               ),
             ]
           ),
