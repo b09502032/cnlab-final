@@ -61,10 +61,6 @@ document.body.replaceChildren(
       typography.size(blocks.block(document.createElement("div")), 1),
       [document.createTextNode("games")]
     ),
-    gameMedia(
-      "https://upload.wikimedia.org/wikipedia/commons/2/20/Othello-Standard-Board.jpg",
-      "reversi",
-      route
-    ),
+    gameMedia("/assets/Othello-Standard-Board.jpg", "reversi", route),
   ])
 );
