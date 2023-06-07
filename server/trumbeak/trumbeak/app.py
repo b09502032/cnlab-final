@@ -32,6 +32,7 @@ class Main:
         username: Annotated[str, fastapi.Body(embed=True)],
         password: Annotated[str, fastapi.Body(embed=True)],
     ):
+        assert username != "admin"
         await self.user_manager.create_user(username, password)
 
     async def login(
@@ -72,6 +73,11 @@ class Main:
         user = await self.user_manager.get_user(id)
         return user.name
 
+    async def get_octet(self, session: Annotated[str, fastapi.Cookie()]):
+        user_id = self.session_manager.get_user_id(session)
+        assert user_id is not None
+        return await self.user_manager.get_octet(user_id)
+
 
 @dataclasses.dataclass
 class Reversi:
@@ -107,6 +113,7 @@ def build_main_router(router: fastapi.APIRouter, main: Main):
     router.post("/logout")(main.logout)
     router.get("/is_logged_in")(main.is_logged_in)
     router.get("/current_user")(main.current_user)
+    router.get("/octet")(main.get_octet)
     return router
 
 

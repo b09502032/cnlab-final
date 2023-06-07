@@ -1,5 +1,4 @@
 import asyncio
-import collections
 import copy
 import dataclasses
 from typing import Literal
@@ -7,10 +6,12 @@ from typing import Literal
 import sqlalchemy.ext.asyncio
 import starlette.websockets
 
+import trumbeak.bad
 import trumbeak.broker
 import trumbeak.reversi.core
 import trumbeak.reversi.crud
 import trumbeak.reversi.message
+import trumbeak.users.manager
 import trumbeak.utils
 
 
@@ -24,6 +25,8 @@ class ReversiSpace:
         sqlalchemy.ext.asyncio.AsyncSession
     ]
     broker: trumbeak.broker.Broker[trumbeak.reversi.message.Message]
+    user_manager: trumbeak.users.manager.Manager
+    octet: int = 100000000
 
     def get_state_update(self):
         return trumbeak.reversi.message.StateUpdate(copy.deepcopy(self.reversi.state))
@@ -92,6 +95,26 @@ class ReversiSpace:
                 while True:
                     options = await self.begin_turn()
                     if options is None:
+                        assert self.reversi.ended
+                        white_count = 0
+                        black_count = 0
+                        for i in range(self.reversi.state.board.length()):
+                            for j in range(self.reversi.state.board.length()):
+                                value = self.reversi.state.board.get_value((i, j))
+                                if value == 0:
+                                    white_count += 1
+                                elif value == 1:
+                                    black_count += 1
+                        if white_count > black_count:
+                            winners = (self.players[0],)
+                        elif white_count == black_count:
+                            winners = self.players
+                            self.octet //= 2
+                        else:
+                            winners = (self.players[1],)
+                        for winner in winners:
+                            assert winner is not None
+                            await self.user_manager.add_octet(winner, self.octet)
                         break
                     if options:
                         break
@@ -125,6 +148,7 @@ class Manager:
         sqlalchemy.ext.asyncio.AsyncSession
     ]
     spaces: dict[int, ReversiSpace]
+    user_manager: trumbeak.users.manager.Manager
 
     async def create_reversi(self, owner: int):
         async with self.session_maker() as session:
@@ -139,6 +163,7 @@ class Manager:
             ),
             session_maker=self.session_maker,
             broker=trumbeak.broker.Broker([]),
+            user_manager=self.user_manager,
         )
         self.spaces[space.id] = space
         return space.id

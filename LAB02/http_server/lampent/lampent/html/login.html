@@ -1,0 +1,171 @@
+<head>
+    <link rel="stylesheet" href="/static/bulma.min.css">
+    <style>
+        html {
+            overflow-y: visible;
+        }
+    </style>
+    <script>
+        async function currentUser() {
+            const response = await fetch('/api/current_user');
+            const username = await response.json();
+            const item = document.createElement('div');
+            item.classList.add('navbar-item');
+            if (typeof username === 'string') {
+                item.textContent = username;
+            }
+            else if (username === null) {
+            }
+            else {
+                throw new Error();
+            }
+            const contentSpan = document.createElement('span');
+            contentSpan.replaceChildren(item);
+            return contentSpan;
+        }
+        class NavigationBar {
+            element;
+            end;
+            constructor(element, end) {
+                this.element = element;
+                this.end = end;
+            }
+        }
+        async function createNavigationBar() {
+            const block = document.createElement('div');
+            block.classList.add('block');
+            const navigationBar = document.createElement('nav');
+            navigationBar.classList.add('navbar');
+            navigationBar.role = 'navigation';
+            navigationBar.ariaLabel = 'main navigation';
+            const menu = document.createElement('div');
+            menu.classList.add('navbar-menu');
+            const start = document.createElement('div');
+            start.classList.add('navbar-start');
+            const items = [
+                ['/', '首頁', 'index'],
+                ['/register', '使用者註冊', 'register'],
+                ['/login', '使用者登入', 'login'],
+                ['/logout', '使用者登出', 'logout'],
+                ['/accounting', '顯示使用者流量與使用時間的功能', 'accounting'],
+            ];
+            for (const [url, textContent, name] of items) {
+                const item = document.createElement('a');
+                item.classList.add('navbar-item');
+                item.href = url;
+                item.textContent = textContent;
+                start.appendChild(item);
+            }
+            const end = document.createElement('div');
+            end.replaceChildren(await currentUser());
+            menu.replaceChildren(start, end);
+            navigationBar.replaceChildren(menu);
+            block.replaceChildren(navigationBar);
+            return new NavigationBar(block, end);
+        }
+
+
+        function main() {
+            document.addEventListener('DOMContentLoaded', async (event) => {
+                const genericSection = document.createElement('section');
+                genericSection.classList.add('section');
+                const contentDivsion = document.createElement('div');
+                contentDivsion.classList.add('container');
+                const main = document.createElement('main');
+                const title = document.createElement('h1');
+                title.classList.add('title');
+                title.textContent = '使用者登入';
+                const block = document.createElement('div');
+                block.classList.add('block');
+
+                function createField(labelTextContent, inputType) {
+                    const field = document.createElement('div');
+                    field.classList.add('field');
+                    const label = document.createElement('label');
+                    label.classList.add('label');
+                    label.textContent = labelTextContent;
+                    const control = document.createElement('div');
+                    control.classList.add('control');
+                    const input = document.createElement('input');
+                    input.classList.add('input');
+                    input.type = inputType;
+                    control.replaceChildren(input);
+                    field.replaceChildren(label, control);
+                    return [field, input];
+                }
+
+                function createButton(textContent, listener) {
+                    const field = document.createElement('div');
+                    field.classList.add('field');
+                    const control = document.createElement('div');
+                    control.classList.add('control');
+                    const button = document.createElement('button');
+                    button.classList.add('button', 'is-link');
+                    button.textContent = textContent;
+                    button.addEventListener('click', listener);
+                    control.replaceChildren(button);
+                    field.replaceChildren(control);
+                    return field;
+                }
+
+                function createNotification(textContent) {
+                    const notification = document.createElement('div');
+                    notification.classList.add('notification');
+                    const button = document.createElement('button');
+                    button.classList.add('delete');
+                    button.addEventListener('click', (event) => {
+                        notification.remove();
+                    });
+                    const text = document.createElement('div');
+                    text.textContent = textContent;
+                    notification.replaceChildren(button, text);
+                    return notification;
+                }
+
+                const navigationBar = await createNavigationBar();
+
+                const [username, usernameInput] = createField('username', 'text');
+                const [password, passwordInput] = createField('password', 'password');
+                const notificationBlock = document.createElement('div');
+                notificationBlock.classList.add('block');
+                const button = createButton('登入', async (event) => {
+                    let ok = false;
+                    try {
+                        const response = await fetch('/api/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                'username': usernameInput.value,
+                                'password': passwordInput.value,
+                            }),
+                        })
+                        const data = await response.json();
+                        if (data === true) {
+                            ok = true;
+                        }
+                    } catch (error) {
+                        console.error(error);
+                    }
+                    const result = ok ? '登入成功' : '登入失敗';
+                    if (ok) {
+                        navigationBar.end.replaceChildren(await currentUser());
+                    }
+                    notificationBlock.insertBefore(createNotification(result), notificationBlock.firstChild);
+                });
+
+                const formBlock = document.createElement('div');
+                formBlock.classList.add('block');
+                formBlock.replaceChildren(username, password, button);
+                block.replaceChildren(formBlock, notificationBlock);
+                main.replaceChildren(title, block);
+                contentDivsion.replaceChildren(navigationBar.element, main);
+                genericSection.replaceChildren(contentDivsion);
+                document.body.replaceChildren(genericSection);
+            });
+        }
+
+        main();
+    </script>
+</head>

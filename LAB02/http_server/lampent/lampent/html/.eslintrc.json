@@ -1,0 +1,48 @@
+{
+    "root": true,
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+        "plugin:@typescript-eslint/strict"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "project": true
+    },
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "rules": {
+        "no-constant-condition": [
+            "error",
+            {
+                "checkLoops": false
+            }
+        ],
+        "@typescript-eslint/no-unnecessary-condition": [
+            "warn",
+            {
+                "allowConstantLoopConditions": true
+            }
+        ],
+        "@typescript-eslint/no-invalid-void-type": [
+            "warn",
+            {
+                "allowAsThisParameter": true
+            }
+        ],
+        "@typescript-eslint/no-misused-promises": [
+            "error",
+            {
+                "checksVoidReturn": false
+            }
+        ],
+        "@typescript-eslint/no-floating-promises": [
+            "error",
+            {
+                "ignoreIIFE": true
+            }
+        ]
+    }
+}

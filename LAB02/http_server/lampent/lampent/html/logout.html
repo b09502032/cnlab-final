@@ -1,0 +1,23 @@
+<head>
+    <script>
+        async function main() {
+            let ok = false;
+            try {
+                const response = await fetch('/api/logout', {
+                    method: 'POST',
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    ok = true;
+                }
+            } catch (error) {
+                console.error(error);
+            }
+            console.log(ok);
+            if (ok) {
+                window.location = '/';
+            }
+        }
+        main();
+    </script>
+</head>

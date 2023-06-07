@@ -3,9 +3,11 @@ import pathlib
 
 import argon2
 import fastapi
+import requests
 import uvicorn
 
 import trumbeak.app
+import trumbeak.bad
 import trumbeak.create_table
 import trumbeak.default
 import trumbeak.orm
@@ -20,9 +22,18 @@ async def main():
 
     await trumbeak.create_table.create(engine)
 
+    http_session = requests.Session()
+    response = http_session.post(
+        trumbeak.bad.URL + "api/login", json={"username": "admin", "password": "admin"}
+    )
+    response.raise_for_status()
+    assert response.json() is True
+
     session_manager = trumbeak.session.Manager({})
     user_manager = trumbeak.users.manager.Manager(
-        session_maker=session_maker, password_hasher=argon2.PasswordHasher()
+        session_maker=session_maker,
+        password_hasher=argon2.PasswordHasher(),
+        http_session=http_session,
     )
     app = fastapi.FastAPI()
     trumbeak.app.build_app(
@@ -33,13 +44,13 @@ async def main():
         reversi=trumbeak.app.Reversi(
             session_manager=session_manager,
             reversi_manager=trumbeak.reversi.manager.Manager(
-                session_maker=session_maker, spaces={}
+                session_maker=session_maker, spaces={}, user_manager=user_manager
             ),
         ),
         directory=pathlib.Path("../../client/dunsparce/dist"),
     )
 
-    config = uvicorn.Config(app)
+    config = uvicorn.Config(app, host="0.0.0.0")
     server = uvicorn.Server(config)
     await server.serve()
 

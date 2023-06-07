@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "module": "es2022",
+        "target": "es2022",
+        "moduleResolution": "node",
+        "experimentalDecorators": true,
+        "noEmitOnError": true
+    },
+    "extends": "@tsconfig/strictest/tsconfig.json",
+    "include": [
+        "**/*.ts"
+    ]
+}
